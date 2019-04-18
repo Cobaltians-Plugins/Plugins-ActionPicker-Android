@@ -20,7 +20,6 @@ public class ActionPicker extends CobaltAbstractPlugin {
     private static final String TAG = CobaltAbstractPlugin.class.getSimpleName();
 
     private static ActionPicker sInstance;
-    private String mPluginName;
 
     public static CobaltAbstractPlugin getInstance(CobaltPluginWebContainer webContainer) {
         if (sInstance == null) {
@@ -31,23 +30,21 @@ public class ActionPicker extends CobaltAbstractPlugin {
     }
 
     @Override
-    public void onMessage(CobaltPluginWebContainer webContainer, JSONObject message) {
+    public void onMessage(CobaltPluginWebContainer webContainer, JSONObject message, String callbackChannel) {
         try {
             String action = message.getString("action");
-            mPluginName = message.getString(Cobalt.kJSPluginName);
 
             if ("getAction".equals(action)) {
                 JSONObject data = message.getJSONObject(Cobalt.kJSData);
                 JSONArray actionsJSON = data.getJSONArray("actions");
                 int actionsLength = actionsJSON.length();
-                String callback = data.getString(Cobalt.kJSCallback);
 
                 ArrayList<String> actions = new ArrayList<>(actionsLength);
                 for (int i = 0; i < actionsLength; i++){
                     actions.add(actionsJSON.getString(i));
                 }
 
-                showUIPicker(actions, callback, webContainer);
+                showUIPicker(actions, callbackChannel, webContainer);
             }
             else if (Cobalt.DEBUG) {
                 Log.w(TAG, "onMessage: action '" + action + "' or plugin name not recognized");
@@ -65,7 +62,7 @@ public class ActionPicker extends CobaltAbstractPlugin {
         }
     }
 
-    private void showUIPicker(ArrayList<String> actions, final String callback, CobaltPluginWebContainer webContainer) {
+    private void showUIPicker(ArrayList<String> actions, final String callbackChannel, CobaltPluginWebContainer webContainer) {
         CharSequence[] items = actions.toArray(new CharSequence[actions.size()]);
         final CobaltFragment fragment = webContainer.getFragment();
 
@@ -76,8 +73,8 @@ public class ActionPicker extends CobaltAbstractPlugin {
                         try {
                             JSONObject data = new JSONObject();
                             data.put("index", i);
-                            data.put("callback", callback);
-                            fragment.sendPlugin(mPluginName, data);
+                            Cobalt.publishMessage(data, callbackChannel);
+
                         }
                         catch (JSONException exception) {
                             exception.printStackTrace();
@@ -90,8 +87,7 @@ public class ActionPicker extends CobaltAbstractPlugin {
                         try {
                             JSONObject data = new JSONObject();
                             data.put("index", -1);
-                            data.put("callback", callback);
-                            fragment.sendPlugin(mPluginName, data);
+                            Cobalt.publishMessage(data, callbackChannel);
                         }
                         catch (JSONException exception) {
                             exception.printStackTrace();
