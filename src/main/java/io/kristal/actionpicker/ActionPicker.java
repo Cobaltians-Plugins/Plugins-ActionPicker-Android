@@ -2,6 +2,8 @@ package io.kristal.actionpicker;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import org.cobaltians.cobalt.plugin.CobaltAbstractPlugin;
@@ -21,21 +23,24 @@ public class ActionPicker extends CobaltAbstractPlugin {
 
     private static ActionPicker sInstance;
 
-    public static CobaltAbstractPlugin getInstance(CobaltPluginWebContainer webContainer) {
-        if (sInstance == null) {
+    public static CobaltAbstractPlugin getInstance()
+    {
+        if (sInstance == null)
+        {
             sInstance = new ActionPicker();
         }
-
         return sInstance;
     }
-
+    
     @Override
-    public void onMessage(CobaltPluginWebContainer webContainer, JSONObject message, String callbackChannel) {
-        try {
-            String action = message.getString("action");
-
-            if ("getAction".equals(action)) {
-                JSONObject data = message.getJSONObject(Cobalt.kJSData);
+    public void onMessage(@NonNull CobaltPluginWebContainer webContainer, @NonNull String action,
+            @Nullable JSONObject data, @Nullable String callbackChannel)
+    {
+        try
+        {
+            if ("getAction".equals(action)
+                && data != null)
+            {
                 JSONArray actionsJSON = data.getJSONArray("actions");
                 int actionsLength = actionsJSON.length();
 
